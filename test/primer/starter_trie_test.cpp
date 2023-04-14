@@ -26,22 +26,31 @@ namespace bustub {
 std::vector<std::string> GenerateNRandomString(int n) {
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_int_distribution<char> char_dist('A', 'z');
+  std::uniform_int_distribution<int> char_dist(0, 51);
   std::uniform_int_distribution<int> len_dist(1, 30);
-
+  int numberOfChar = 52;
+  std::vector<char> char_list(52, '\0');
+  for(int i=0; i < numberOfChar; i++) {
+    if(i < 26){
+      char_list[i] = char('A' + i);
+    } else {
+      char_list[i] = char('a' + i - 26);
+    }
+  }
   std::vector<std::string> rand_strs(n);
 
   for (auto &rand_str : rand_strs) {
     int str_len = len_dist(gen);
     for (int i = 0; i < str_len; ++i) {
-      rand_str.push_back(char_dist(gen));
+      int idx = char_dist(gen);
+      rand_str.push_back(char_list[idx]);
     }
   }
 
   return rand_strs;
 }
 
-TEST(StarterTest, DISABLED_TrieNodeInsertTest) {
+TEST(StarterTest, TrieNodeInsertTest) {
   // Test Insert
   //  When same key is inserted twice, insert should return nullptr
   // When inserted key and unique_ptr's key does not match, return nullptr
@@ -60,7 +69,7 @@ TEST(StarterTest, DISABLED_TrieNodeInsertTest) {
   EXPECT_EQ((*child_node)->GetKeyChar(), 'c');
 }
 
-TEST(StarterTest, DISABLED_TrieNodeRemoveTest) {
+TEST(StarterTest, TrieNodeRemoveTest) {
   auto t = TrieNode('a');
   __attribute__((unused)) auto child_node = t.InsertChildNode('b', std::make_unique<TrieNode>('b'));
   child_node = t.InsertChildNode('c', std::make_unique<TrieNode>('c'));
@@ -78,7 +87,7 @@ TEST(StarterTest, DISABLED_TrieNodeRemoveTest) {
   EXPECT_EQ(child_node, nullptr);
 }
 
-TEST(StarterTest, DISABLED_TrieInsertTest) {
+TEST(StarterTest, TrieInsertTest) {
   {
     Trie trie;
     trie.Insert<std::string>("abc", "d");
@@ -129,7 +138,7 @@ TEST(StarterTest, DISABLED_TrieInsertTest) {
   }
 }
 
-TEST(StarterTrieTest, DISABLED_RemoveTest) {
+TEST(StarterTrieTest, RemoveTest) {
   {
     Trie trie;
     bool success = trie.Insert<int>("a", 5);
@@ -162,7 +171,7 @@ TEST(StarterTrieTest, DISABLED_RemoveTest) {
   }
 }
 
-TEST(StarterTrieTest, DISABLED_ConcurrentTest1) {
+TEST(StarterTrieTest, ConcurrentTest1) {
   Trie trie;
   constexpr int num_words = 1000;
   constexpr int num_bits = 10;

@@ -195,7 +195,9 @@ inline void OutputLogHeader(const char *file, int line, const char *func, int le
       type = "UNKWN";
   }
   // PAVLO: DO NOT CHANGE THIS
-  ::fprintf(LOG_OUTPUT_STREAM, "%s [%s:%d:%s] %s - ", time_str, file, line, func, type);
+  // ::fprintf(LOG_OUTPUT_STREAM, "%s [%s:%d:%s] %s - ", time_str, file, line, func, type);
+  // \033[47;31mThis is a color test.\033[0m
+  ::fprintf(LOG_OUTPUT_STREAM, "\033[0;31m [%s] %s - \033[0m",  func, type);
 }
 
 }  // namespace bustub
