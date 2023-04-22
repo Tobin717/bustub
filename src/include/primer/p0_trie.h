@@ -283,7 +283,7 @@ class Trie {
   Trie() {
     auto root = std::make_unique<TrieNode>('\0');
     root_ = std::move(root);
-  };
+  }
 
   /**
    * TODO(P0): Add implementation
@@ -384,10 +384,13 @@ class Trie {
    * @return True if the key exists and is removed, false otherwise
    */
   bool Remove(const std::string &key) {
+    if (key.empty()) {
+      return false;
+    }
     latch_.WLock();
     std::unique_ptr<TrieNode>* pre = nullptr;
     std::unique_ptr<TrieNode>* cur = &root_;
-    for (auto ch: key) {
+    for (auto ch : key) {
       std::unique_ptr<TrieNode>* child_node = (*cur) -> GetChildNode(ch);
       if (child_node == nullptr) {
         latch_.WUnlock();
@@ -415,6 +418,15 @@ class Trie {
 
 
   void DeleteNodeIfNeeded(const std::string &key);
+  void RemoveNodeR(const std::string &key, unsigned int start, std::unique_ptr<TrieNode>* current) {
+    if (current == nullptr) { return; }
+    if (start == key.length()) { return; }
+    auto next_child = (*current) -> GetChildNode(key[start]);
+    if (next_child != nullptr) {
+      RemoveNodeR(key, start + 1, next_child);
+      (*current) -> RemoveChildNode(key[start]);
+    }
+  }
   TrieNode* SearchForKey(const std::string &key, unsigned int start, std::unique_ptr<TrieNode>* current) const;
   /**
    * TODO(P0): Add implementation
@@ -436,12 +448,18 @@ class Trie {
    */
   template <typename T>
   T GetValue(const std::string &key, bool *success) {
+    *success = false;
     latch_.RLock();
     TrieNode* ptr = SearchForKey(key, 0, &root_);
     auto ret = dynamic_cast<TrieNodeWithValue<T> *> (ptr);
     *success = !(ret == nullptr);
+    if (*success) {
+      auto val = ret -> GetValue();
+      latch_.RUnlock();
+      return val;
+    }
     latch_.RUnlock();
-    return *success ? ret -> GetValue() : T();
+    return T();
   }
 };
 
@@ -482,11 +500,13 @@ void Trie::DeleteNodeIfNeeded(const std::string &key) {
     }
     cur = (*cur) -> GetChildNode(ch);
   }
-  for (unsigned int i = idx; i < key.length(); i++) {
-    char ch = key[i];
-    auto next_node = (*mark) -> GetChildNode(ch);
-    (*mark) -> RemoveChildNode(ch);
-    mark = next_node;
-  }
+  // RemoveNodeR(key, idx, mark);
+  (*mark) -> RemoveChildNode(key[idx]);
+  // for (unsigned int i = idx; i < key.length(); i++) {
+  //   char ch = key[i];
+  //   auto next_node = (*mark) -> GetChildNode(ch);
+  //   (*mark) -> RemoveChildNode(ch);
+  //   mark = next_node;
+  // }
 }
 }  // namespace bustub
